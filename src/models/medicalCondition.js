@@ -1,4 +1,4 @@
-export class MedicalCondition {
+export class MedicalRecord {
   constructor(diagnosis, date, treatment) {
     // tukaj pride v poštev typescript, ali pa kakšen library za validacijo
 

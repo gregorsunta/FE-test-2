@@ -1,88 +1,114 @@
 import {
-  clinic1,
+  Clinic,
   Appointment,
-  MedicalCondition,
+  MedicalRecord,
   Animal,
+  Owner,
 } from './src/models/index.js';
 
+// nova klinika
+const clinic1 = new Clinic();
+
+// vpis novega lastnika
+const janez = new Owner(
+  'Janez',
+  'Novak',
+  '0511987500212', //EMŠO
+  '086522399', // telefonska
+);
+
+clinic1.addOwner(janez);
+
+//////////////////////////////////////////////////////////////////////////////////////////
 // vpis nove živali v register
 
-// P.S. pri številkah uporabim string format zaradi začetnih ničel, pretvorbo iz string v number imam narejeno v classih
 const piko = new Animal(
-  '4123',
+  janez.UMCN,
+  '4123', //id čipa
   'Piko',
   'cat',
   new Date('2020/4/16'),
-  'Aleks',
-  'Novak',
-  '042356255',
 );
 const spidi = new Animal(
-  '5022',
+  janez.UMCN,
+  '5022', //id čipa
   'Spidi',
   'dog',
   new Date('2022/12/11'),
-  'Aleks',
-  'Novak',
-  '042356255',
 );
 const thor = new Animal(
-  '8534',
+  janez.UMCN,
+  '8534', //id čipa
   'Thor',
   'dog',
-  new Date('2018/22/01'),
-  'Franc',
-  'Mogočni',
-  '086522399',
+  new Date('2018/02/01'),
 );
 
 clinic1.addAnimal(piko);
 // ali
-clinic1.addMultipleAnimals(thor, spidi);
+clinic1.addMultipleAnimals(spidi, thor);
 
 //////////////////////////////////////////////////////////////////////////////////////////
-
 // iskanje živali
 
-// 1. poiščem vse živali preko imena in priimka lastnika
-clinic1.findAnimalsByOwnerFullName('Aleks', 'Novak');
+//  če vem samo ime in priimek, vrnem array vseh živali, ki imajo enak ime in priimek lastnika
+clinic1.filterAnimalsBySameOwnerFullName('Janez', 'Novak');
 
-// ali 2. poiščem vse živali preko telefonske številke lastnika
-clinic1.findAnimalsByOwnerPhoneNumber('086522399');
+// ali poiščem vse živali določenega lastnika preko telefonske številke lastnika
+clinic1.filterAnimalsByOwnerPhoneNumber('086522399');
 
-//  ali 3. poiščem točno eno žival preko id čipa
+//  ali poiščem točno eno žival preko id čipa
 clinic1.findAnimalById('8534');
 
 //////////////////////////////////////////////////////////////////////////////////////////
+// iskanje lastnika
 
+clinic1.findOwnerByAnimalId('5022');
+
+//////////////////////////////////////////////////////////////////////////////////////////
 // vpis zdravstvenega stanja / bolezni etc
 
-const cold = new MedicalCondition(
+const cold = new MedicalRecord(
   'A cold',
-  '25.4.2023',
+  new Date('2022/05/12'),
   'A lot of rest and liquids',
 );
-const influenza = new MedicalCondition(
+const influenza = new MedicalRecord(
   'Canine influenza',
-  '20.2.2021',
+  new Date('2022/06/12'),
   'A lot of rest and liquids. Prescribing some medical drugs.',
 );
-const parasites = new MedicalCondition(
+const parasites = new MedicalRecord(
   'External parasites',
-  '20.2.2018',
+  new Date('2022/08/15'),
   'Removing ticks regularly and spraying tick bites with prescribed sterile solution',
 );
 
-// .1 direktno
+// direktno
 piko.addMedicalRecord(cold);
 
-// ali 2. da najprej poiščem žival preko id-ja
+// ali nekako poiščem žival prej
 clinic1.findAnimalById('8534').addMultipleMedicalRecords(influenza, parasites);
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
 // vpis pregledov
 
-const newAppointment = new Appointment(new Date('18/8/2023'), 'A hard cough');
+const newAppointment = new Appointment(
+  '111222333', //'generiran' id
+  spidi.id,
+  new Date('2023/5/15/09:15:00'),
+  'A hard cough',
+);
 
-clinic1.findAnimalById('5022').addAppointment(newAppointment);
+// dodam appointment v kliniko
+
+clinic1.addAppointment(newAppointment);
+
+//////////////////////////////////////////////////////////////////////////////////////////
+
+// zbrišem specifično žival iz 'baze' in ownerja
+clinic1.removeAnimalById(thor.id);
+
+// zbrišem ownerja, vse živali povezane z njim in vse njihove termine
+clinic1.removeEntitiesByOwnerUMCN(janez.UMCN);

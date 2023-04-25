@@ -1,60 +1,145 @@
 // naredim nek temporary object, ki bo shranjeval lastnike in živali
 // ta sistem bo primeren samo za shranjevanje v memoriju
 
-class Clinic {
-  constructor() {
-    this._animals = [];
+export class Clinic {
+  constructor(owners = [], animals = [], appointments = []) {
+    this._owners = owners;
+    this._animals = animals;
+    this._appointments = appointments;
   }
+  // uporabim zato da so _propertije nekoliko bolj na varnem
+  get owners() {
+    return [...this._owners];
+  }
+
   get animals() {
-    // uporabim zato da je _animals 'varen' pred spreminjanjem obstoječih stanj po pomoti
-    return this._animals;
+    return [...this._animals];
   }
-  displayAnimals() {
-    // ne vrne ničesar, služi samo za prikaz živali v konzoli
-    this.animals.forEach((animal) => console.log(animal));
-  }
-  addAnimal(animal) {
-    // vrne na novo dodano žival
-    // lahko chainamo dodatne metode direktno - npr. addAnimal().addMedicalREcord
-    return this.animals.push(animal);
-  }
-  addMultipleAnimals(...animalsToAdd) {
-    // ne vrne ničesar
-    animalsToAdd.forEach((animal) => this.animals.push(animal));
-  }
-  removeAnimal(animalId) {
-    // ne vrne ničesar
-    // deluje ampak direktno spreminjam _propertije
 
-    // 1.
-    this._animals = this._animals.filter((animal) => animal.id !== animalId);
-
-    // ali 2.
-    // const animalIndex = this.animals.findIndex(
-    //   (animal) => animal.id === animalId,
-    // );
-    // if (animalIndex !== -1) {
-    //   this._animals.splice(animalIndex, 1);
-    // }
+  get appointments() {
+    return [...this._appointments];
   }
-  findAnimalsByOwnerFullName(name, surname) {
-    return this.animals.filter(
-      (animal) => animal.ownerName === name && animal.ownerSurname === surname,
+
+  // metode za dodajanje objectov in odstranitev objectov
+
+  // doda nov owner v kliniko
+  // vrne novo število vseh ownerjev
+  addOwner(owner) {
+    return this._owners.push(owner);
+  }
+
+  // doda več novih lastnikov v kliniko
+  // ne vrne ničesar
+  addMultipleOwners(...ownersToAdd) {
+    ownersToAdd.forEach((owner) => this.addOwner(owner));
+  }
+
+  // doda žival v kliniko
+  // vrne novo število animals
+  addAnimal(animalToAdd) {
+    return this._animals.push(animalToAdd);
+  }
+
+  // enako kot this.addAnimal samo, da sprejme več argumentov (živali)
+  // ne vrne ničesar
+  addMultipleAnimals(...animals) {
+    animals.forEach((animal) => this.addAnimal(animal));
+  }
+
+  // doda nov appointment v kliniko
+  // vrne posodobljeno število appointmentov
+  addAppointment(appointment) {
+    return this._appointments.push(appointment);
+  }
+
+  // vrne posodobljen array živali
+  removeAnimalById(animalId) {
+    return (this._animals = this.animals.filter(
+      (animal) => animal.id !== animalId,
+    ));
+  }
+
+  // vrne posodobljen array ownerjev
+  removeOwnerByUMCN(ownerUMCN) {
+    return (this._owners = this.owners.filter(
+      (owner) => owner.UMCN !== ownerUMCN,
+    ));
+  }
+
+  // vrne posodobljen array appointmentov
+  removeAppointmentById(appointmentId) {
+    return (this._appointments = this.appointments.filter(
+      (appointment) => appointment.id !== appointmentId,
+    ));
+  }
+
+  // izbriše ownerja, vse njegove živali in vse obiske
+  removeEntitiesByOwnerUMCN(ownerUMCN) {
+    const animalIds = this.filterAnimalsByOwnerUMCN(ownerUMCN).map(
+      (animal) => animal.id,
     );
+    animalIds.forEach((animalId) => {
+      const appointments = this.filterAppointmentsByAnimalId(animalId);
+      appointments.forEach((appointment) =>
+        this.removeAppointmentById(appointment.id),
+      );
+      this.removeAnimalById(animalId);
+    });
+    this.removeOwnerByUMCN(ownerUMCN);
   }
+
+  // find metode, ki najdejo maksimalno en object
+
+  findOwnerByUMCN(ownerUMCN) {
+    return this.owners.find((owner) => owner.UMCN === ownerUMCN);
+  }
+
   findAnimalById(id) {
-    // vrne točno eno žival
-    // v izrednem primeru več istih id-jev vrne prvega - bi moral tudi za ta izredni primer to urediti?
-    return this.animals.find((animal) => animal.id === parseInt(id));
+    return this.animals.find((animal) => animal.id === id);
   }
-  findAnimalsByOwnerPhoneNumber(phoneNumber) {
-    // vrne vse živali z isto telefonsko številko lastnika
-    return this.animals.filter(
-      (animal) => animal.ownerPhoneNumber === parseInt(phoneNumber),
+
+  findOwnerByAnimalId(animalId) {
+    const ownerUMCN = this.findAnimalById(animalId).ownerUMCN;
+    return this.findOwnerByUMCN(ownerUMCN);
+  }
+
+  findAppointmentById(id) {
+    return this.appointments.find((appointment) => appointment.id === id);
+  }
+
+  // filter metode, ki lahko najdejo več objectov
+
+  // vrne array lastnikov preko imena in priimka
+  filterOwnersByFullName(name, surname) {
+    return this.owners.filter(
+      (owner) => owner.name === name && owner.surname === surname,
     );
   }
-  // + setterji za validacijo dodatnih sprememb
+
+  // vrne array živali VSEH lastnikov z ISTIM imenom in priimkom
+  filterAnimalsBySameOwnerFullName(name, surname) {
+    return this.filterOwnersByFullName(name, surname)
+      .map((owner) => this.filterAnimalsByOwnerUMCN(owner.UMCN))
+      .flat();
+  }
+
+  // vrne array živali preko EMŠO lastnika
+  filterAnimalsByOwnerUMCN(UMCN) {
+    return this.animals.filter((animal) => animal.ownerUMCN === UMCN);
+  }
+
+  // vrne array živali preko telefonske številke lastnika
+  filterAnimalsByOwnerPhoneNumber(phoneNumber) {
+    const ownerUMCN = this.owners.find(
+      (owner) => owner.phoneNumber === phoneNumber,
+    ).UMCN;
+    return this.filterAnimalsByOwnerUMCN(ownerUMCN);
+  }
+
+  // najde pripisane appointmente preko id čipa živali
+  filterAppointmentsByAnimalId(animalId) {
+    return this.appointments.filter(
+      (appointment) => appointment.animalId === animalId,
+    );
+  }
 }
-// exportam instance in ne direktno Class - naredim singleton
-const clinic1 = new Clinic();
-export { clinic1 };
