@@ -73,18 +73,21 @@ export class Clinic {
     ));
   }
 
-  // izbriše ownerja, vse njegove živali in vse obiske
+  // izbriše žival in vse njene zapisane termine
+  removeEntitiesByAnimalId(animalId) {
+    const appointments = this.filterAppointmentsByAnimalId(animalId);
+    appointments.forEach((appointment) => {
+      this.removeAppointmentById(appointment.id);
+    });
+    this.removeAnimalById(animalId);
+  }
+
+  // izbriše ownerja, vse njegove živali in vse zapisane termine
   removeEntitiesByOwnerUMCN(ownerUMCN) {
     const animalIds = this.filterAnimalsByOwnerUMCN(ownerUMCN).map(
       (animal) => animal.id,
     );
-    animalIds.forEach((animalId) => {
-      const appointments = this.filterAppointmentsByAnimalId(animalId);
-      appointments.forEach((appointment) =>
-        this.removeAppointmentById(appointment.id),
-      );
-      this.removeAnimalById(animalId);
-    });
+    animalIds.forEach((animalId) => this.removeEntitiesByAnimalId(animalId));
     this.removeOwnerByUMCN(ownerUMCN);
   }
 

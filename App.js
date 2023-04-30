@@ -107,8 +107,8 @@ clinic1.addAppointment(newAppointment);
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
-// zbrišem specifično žival iz 'baze' in ownerja
-clinic1.removeAnimalById(thor.id);
+// izbrišem specifično žival in njene termine iz klinike
+clinic1.removeEntitiesByAnimalId(thor.id);
 
-// zbrišem ownerja, vse živali povezane z njim in vse njihove termine
+// izbrišem ownerja, vse živali povezane z njim in vse njihove termine
 clinic1.removeEntitiesByOwnerUMCN(janez.UMCN);
